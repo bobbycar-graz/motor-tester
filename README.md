@@ -1,6 +1,6 @@
 # Motor Tester Program
 
-You can use this program to test motors connected to an ESC board that speaks @0xFEEDC0DE64's [Bobby Car Protocol](https://github.com/bobbycar-graz/bobbycar-protocol).
+You can use this program to test motors connected to an ESC board that speaks [0xFEEDC0DE64](https://github.com/0xFEEDC0DE64)'s [Bobby Car Protocol](https://github.com/bobbycar-graz/bobbycar-protocol).
 
 After starting the program, the left motor will spin up to maximum speed (1000) in steps of 100, using FOC Voltage mode with a soft current limit of 2 A.
 
