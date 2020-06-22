@@ -1,14 +1,11 @@
 #include <cstdio>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+
 #include <cstring>
-#include <cstdlib>
 #include <cerrno>
 #include <unistd.h>
-#include <termios.h>
 
 #include "protocol.h"
+#include "serial.h"
 
 static ssize_t header_pos(char* buf, size_t len)
 {
@@ -101,51 +98,6 @@ static void send_command(int serial_fd, int speed)
   write(serial_fd, (void*)&command, sizeof(command));
 }
 
-int baud_rate_to_b(int baud_rate)
-{
-  switch (baud_rate)
-  {
-    //case 0:
-    //  return B0;
-    case 50:
-      return B50;
-    case 75:
-      return B75;
-    case 110:
-      return B110;
-    case 134:
-      return B134;
-    case 150:
-      return B150;
-    case 200:
-      return B200;
-    case 300:
-      return B300;
-    case 600:
-      return B600;
-    case 1200:
-      return B1200;
-    case 1800:
-      return B1800;
-    case 2400:
-      return B2400;
-    case 4800:
-      return B4800;
-    case 9600:
-      return B9600;
-    case 19200:
-      return B19200;
-    case 38400:
-      return B38400;
-    case 57600:
-      return B57600;
-    case 115200:
-      return B115200;
-  }
-
-  return -1;
-}
-
 int main(int argc, char** argv)
 {
   if (argc < 2 || argc > 3)
@@ -154,19 +106,19 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  int baud_setting = B38400;
+  int baud_rate = 38400;
   if (argc == 3)
   {
     char* endptr = NULL;
     int baud_rate = strtol(argv[2], &endptr, 10);
-    if (argv[2][0] == '\0' || *endptr != '\0' || (baud_setting = baud_rate_to_b(baud_rate)) == -1)
+    if (argv[2][0] == '\0' || *endptr != '\0' || baud_rate_to_b(baud_rate) == -1)
     {
       fprintf(stderr, "Invalid baudrate\n");
       return 1;
     }
   }
 
-  int serial_fd = open(argv[1], O_RDWR);
+  int serial_fd = serial_open(argv[1], baud_rate);
   if (serial_fd < 0)
   {
     char error[256];
@@ -177,14 +129,6 @@ int main(int argc, char** argv)
 
     return 2;
   }
-
-  struct termios options;
-  tcgetattr(serial_fd, &options);
-  cfmakeraw(&options);
-  cfsetispeed(&options, baud_setting);
-  cfsetospeed(&options, baud_setting);
-  options.c_cflag |= CLOCAL;
-  tcsetattr(serial_fd, TCSANOW, &options);
 
   int speed = 0;
   while (true)
